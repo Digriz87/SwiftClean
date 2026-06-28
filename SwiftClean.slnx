@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="SwiftClean.csproj" />
+  <Project Path="tests/SwiftClean.Tests/SwiftClean.Tests.csproj" />
 </Solution>

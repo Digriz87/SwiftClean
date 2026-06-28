@@ -24,13 +24,23 @@ namespace SwiftClean
             new MainWindow().Show();
         }
 
-        // Scans and recycles every safe junk category without any UI.
+        // Scans and recycles the categories chosen on the Scheduler page, without any UI.
         private static async System.Threading.Tasks.Task RunAutoCleanAsync()
         {
             try
             {
+                var s = SettingsStore.Load();
+                var selected = new System.Collections.Generic.HashSet<string>();
+                if (s.SchedulerCleanTemp) selected.Add("Temp Files");
+                if (s.SchedulerCleanRecycle) selected.Add("Recycle Bin");
+                if (s.SchedulerCleanCache) selected.Add("Browser Cache");
+                if (selected.Count == 0)
+                    return;
+
                 var result = await new ScannerService().ScanAsync(null, CancellationToken.None);
-                var targets = result.Categories.Where(c => c.IsSafeToDelete).ToList();
+                var targets = result.Categories
+                    .Where(c => c.IsSafeToDelete && selected.Contains(c.Name))
+                    .ToList();
                 if (targets.Count > 0)
                     await new CleanerService().CleanAsync(targets, null, CancellationToken.None);
             }

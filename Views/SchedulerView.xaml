@@ -112,8 +112,94 @@
                 <StackPanel Orientation="Horizontal">
                     <Border Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5"
                             CornerRadius="6" Padding="16,8">
-                        <TextBlock Text="03:00" FontSize="16" FontWeight="Medium" Foreground="{StaticResource TextBrightBrush}" />
+                        <TextBox Text="{Binding ScheduleTimeText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                 FontSize="16" FontWeight="Medium" Foreground="{StaticResource TextBrightBrush}"
+                                 Background="Transparent" BorderThickness="0" CaretBrush="{StaticResource AccentBrush}"
+                                 SelectionBrush="{StaticResource AccentBrush}" FocusVisualStyle="{x:Null}"
+                                 MinWidth="52" TextAlignment="Center" MaxLength="5"
+                                 VerticalContentAlignment="Center" Padding="0" />
                     </Border>
+
+                    <!-- AM/PM toggle — visible in English only -->
+                    <StackPanel Orientation="Horizontal" Margin="6,0,0,0"
+                                Visibility="{Binding IsEnglish, Source={StaticResource Loc}, Converter={StaticResource BoolToVis}}">
+                        <Button Command="{Binding ToggleAmCommand}" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bg" CornerRadius="5,0,0,5" Background="{StaticResource CardBrush}"
+                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5">
+                                        <TextBlock x:Name="T" Text="AM" FontSize="12" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextFaintBrush}" Margin="10,6" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding DataContext.SchedTimeIsAm, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter TargetName="T" Property="Foreground" Value="White" />
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Command="{Binding TogglePmCommand}" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bg" CornerRadius="0,5,5,0" Background="{StaticResource CardBrush}"
+                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0.5,0.5,0.5">
+                                        <TextBlock x:Name="T" Text="PM" FontSize="12" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextFaintBrush}" Margin="10,6" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding DataContext.SchedTimeIsPm, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource AccentBrush}" />
+                                            <Setter TargetName="T" Property="Foreground" Value="White" />
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Time steppers (±30 min) -->
+                    <StackPanel Margin="6,0,0,0" VerticalAlignment="Center">
+                        <Button Command="{Binding TimeUpCommand}" Cursor="Hand" ToolTip="+30 мин">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bg" Width="26" Height="17" CornerRadius="5,5,0,0" Background="{StaticResource CardBrush}"
+                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5">
+                                        <TextBlock Text="&#xE70E;" FontFamily="Segoe MDL2 Assets" FontSize="9"
+                                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Command="{Binding TimeDownCommand}" Cursor="Hand" ToolTip="−30 мин">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bg" Width="26" Height="17" CornerRadius="0,0,5,5" Background="{StaticResource CardBrush}"
+                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5,0,0.5,0.5">
+                                        <TextBlock Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="9"
+                                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
                     <TextBlock Text="{Binding [sch.timeNote], Source={StaticResource Loc}}" FontSize="12" Foreground="{StaticResource SectionLabelBrush}"
                                VerticalAlignment="Center" Margin="12,0,0,0" />
                 </StackPanel>
@@ -126,15 +212,15 @@
                 <TextBlock Text="{Binding [sch.what], Source={StaticResource Loc}}" Style="{StaticResource PanelTitle}" Margin="0,0,0,14" />
                 <Grid Margin="0,0,0,12">
                     <TextBlock Text="{Binding [sch.temp], Source={StaticResource Loc}}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
-                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="True" IsHitTestVisible="False" />
+                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="{Binding SchedCleanTemp, Mode=TwoWay}" />
                 </Grid>
                 <Grid Margin="0,0,0,12">
                     <TextBlock Text="{Binding [sch.recycle], Source={StaticResource Loc}}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
-                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="True" IsHitTestVisible="False" />
+                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="{Binding SchedCleanRecycle, Mode=TwoWay}" />
                 </Grid>
                 <Grid>
                     <TextBlock Text="{Binding [sch.cache], Source={StaticResource Loc}}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
-                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="False" IsHitTestVisible="False" />
+                    <ToggleButton Style="{StaticResource BoxCheck}" HorizontalAlignment="Right" IsChecked="{Binding SchedCleanCache, Mode=TwoWay}" />
                 </Grid>
             </StackPanel>
         </Border>

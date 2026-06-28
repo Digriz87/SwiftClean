@@ -12,6 +12,14 @@ namespace SwiftClean.Services
         public bool Autostart { get; set; }
         public bool SchedulerEnabled { get; set; }
         public string SchedulerFreq { get; set; } = "weekly";
+
+        /// <summary>Run time of the scheduled auto-clean, "HH:mm" (24h).</summary>
+        public string SchedulerTime { get; set; } = "03:00";
+
+        // Which categories the scheduled auto-clean removes (matches the Scheduler page checkboxes).
+        public bool SchedulerCleanTemp { get; set; } = true;
+        public bool SchedulerCleanRecycle { get; set; } = true;
+        public bool SchedulerCleanCache { get; set; }
     }
 
     /// <summary>Loads/saves <see cref="AppSettings"/> to %AppData%\SwiftClean\settings.json (best-effort).</summary>

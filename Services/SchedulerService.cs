@@ -9,12 +9,11 @@ namespace SwiftClean.Services
     public static class SchedulerService
     {
         private const string TaskName = "SwiftClean Auto-Clean";
-        private const string RunTime = "03:00";
 
         public static bool Exists() => Run("/Query", "/TN", TaskName) == 0;
 
-        /// <summary>Creates or replaces the scheduled task for the given frequency.</summary>
-        public static bool Create(string freq)
+        /// <summary>Creates or replaces the scheduled task for the given frequency and run time ("HH:mm").</summary>
+        public static bool Create(string freq, string time = "03:00")
         {
             var exe = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exe))
@@ -29,15 +28,15 @@ namespace SwiftClean.Services
 
             // ArgumentList handles quoting; /TR carries the quoted exe path + flag.
             return Run("/Create", "/TN", TaskName, "/TR", $"\"{exe}\" --autoclean",
-                       "/SC", sc, "/ST", RunTime, "/F") == 0;
+                       "/SC", sc, "/ST", time, "/F") == 0;
         }
 
         public static bool Remove() => Run("/Delete", "/TN", TaskName, "/F") == 0;
 
-        public static void Apply(bool enabled, string freq)
+        public static void Apply(bool enabled, string freq, string time = "03:00")
         {
             if (enabled)
-                Create(freq);
+                Create(freq, time);
             else
                 Remove();
         }

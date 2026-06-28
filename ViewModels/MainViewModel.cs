@@ -44,6 +44,7 @@ namespace SwiftClean.ViewModels
         private readonly StartupService _startup = new();
         private readonly AppsService _apps = new();
         private readonly RegistryService _registry = new();
+        private readonly DriverService _driverService = new();
         private readonly DispatcherTimer _scanTimer;
         private readonly DispatcherTimer _cpuTimer;
         private readonly Stopwatch _scanWatch = new();
@@ -64,6 +65,16 @@ namespace SwiftClean.ViewModels
         private string _appsSearch = string.Empty;
         private bool _schedulerEnabled = true;
         private string _schedulerFreq = "weekly";
+        private TimeSpan _scheduleTime = new(3, 0, 0);
+        private bool _schedCleanTemp = true;
+        private bool _schedCleanRecycle = true;
+        private bool _schedCleanCache;
+        private bool _driversLoaded;
+        private bool _driverScanning;
+        private int _driverScanProgress;
+        private string _driverScanDevice = string.Empty;
+        private bool _driverScanDone;
+        private bool _wuSearching;
         private bool _notificationsEnabled = true;
         private bool _autostartEnabled;
         private double _cpu = 12;
@@ -87,6 +98,27 @@ namespace SwiftClean.ViewModels
             ToggleStartupCommand = new RelayCommand(p => ToggleStartup(p as StartupApp));
             FreqCommand = new RelayCommand(p => SchedulerFreq = (string)p!);
             SaveScheduleCommand = new RelayCommand(_ => SaveSchedule());
+            TimeUpCommand = new RelayCommand(_ => StepTime(30));
+            TimeDownCommand = new RelayCommand(_ => StepTime(-30));
+            ToggleAmCommand = new RelayCommand(_ =>
+            {
+                if (SchedTimeIsPm)
+                    _scheduleTime = _scheduleTime.Subtract(TimeSpan.FromHours(12));
+                RaiseTimeProps();
+            });
+            TogglePmCommand = new RelayCommand(_ =>
+            {
+                if (SchedTimeIsAm)
+                    _scheduleTime = _scheduleTime.Add(TimeSpan.FromHours(12));
+                RaiseTimeProps();
+            });
+            ScanDriversCommand = new RelayCommand(_ => _ = ScanDriversAsync(), _ => !_driverScanning && !_wuSearching);
+            UpdateDriverCommand = new RelayCommand(
+                p => { if (p is DriverInfo d) _ = UpdateOneDriverAsync(d); },
+                p => p is DriverInfo { IsOutdated: true, IsInstalling: false });
+            UpdateAllDriversCommand = new RelayCommand(
+                _ => _ = UpdateAllDriversAsync(),
+                _ => Drivers.Any(d => d.IsOutdated && !d.IsInstalling));
             DialogConfirmCommand = new RelayCommand(_ => ResolveDialog(true));
             DialogCancelCommand = new RelayCommand(_ => ResolveDialog(false));
             UninstallAppCommand = new RelayCommand(async p => await UninstallAppAsync(p as InstalledApp));
@@ -104,6 +136,10 @@ namespace SwiftClean.ViewModels
             _autostartEnabled = AutostartManager.IsEnabled();
             _schedulerEnabled = saved.SchedulerEnabled;
             _schedulerFreq = saved.SchedulerFreq;
+            _scheduleTime = TimeSpan.TryParse(saved.SchedulerTime, out var t) ? t : new TimeSpan(3, 0, 0);
+            _schedCleanTemp = saved.SchedulerCleanTemp;
+            _schedCleanRecycle = saved.SchedulerCleanRecycle;
+            _schedCleanCache = saved.SchedulerCleanCache;
             if (saved.Language == "ru")
                 L.SetLanguage("ru");
 
@@ -168,6 +204,7 @@ namespace SwiftClean.ViewModels
                 new("startup", "nav.startup", "", "sec.tools"),
                 new("apps", "nav.apps", "", "sec.tools"),
                 new("disk", "nav.disk", "", "sec.tools"),
+                new("drivers", "nav.drivers", "", "sec.tools"),
                 new("scheduler", "nav.scheduler", "", "sec.other"),
                 new("settings", "nav.settings", "", "sec.other"),
             };
@@ -197,6 +234,10 @@ namespace SwiftClean.ViewModels
                 _ = ComputeFolderSizesAsync();
                 StartDiskTypeScan();
             }
+            else if (item.Id == "drivers" && !_driversLoaded)
+            {
+                _ = ScanDriversAsync();
+            }
         }
 
         private void RaisePageFlags()
@@ -207,6 +248,7 @@ namespace SwiftClean.ViewModels
             OnPropertyChanged(nameof(IsStartup));
             OnPropertyChanged(nameof(IsApps));
             OnPropertyChanged(nameof(IsDisk));
+            OnPropertyChanged(nameof(IsDrivers));
             OnPropertyChanged(nameof(IsScheduler));
             OnPropertyChanged(nameof(IsSettings));
         }
@@ -217,6 +259,7 @@ namespace SwiftClean.ViewModels
         public bool IsStartup => _activePage == "startup";
         public bool IsApps => _activePage == "apps";
         public bool IsDisk => _activePage == "disk";
+        public bool IsDrivers => _activePage == "drivers";
         public bool IsScheduler => _activePage == "scheduler";
         public bool IsSettings => _activePage == "settings";
 
@@ -1268,16 +1311,236 @@ namespace SwiftClean.ViewModels
             catch (Exception) { /* best-effort */ }
         }
 
+        // ===================== Drivers =====================
+
+        public ObservableCollection<DriverInfo> Drivers { get; } = new();
+
+        public ICommand ScanDriversCommand { get; }
+        public ICommand UpdateDriverCommand { get; }
+        public ICommand UpdateAllDriversCommand { get; }
+
+        public bool DriverScanning
+        {
+            get => _driverScanning;
+            private set
+            {
+                if (SetProperty(ref _driverScanning, value))
+                {
+                    OnPropertyChanged(nameof(DriverShowEmpty));
+                    OnPropertyChanged(nameof(DriverBusy));
+                    OnPropertyChanged(nameof(DriverBusyText));
+                    OnPropertyChanged(nameof(DriverCheckComplete));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        /// <summary>Empty-state placeholder: shown before the first scan and when nothing was found.</summary>
+        public bool DriverShowEmpty => !HasDrivers && !DriverScanning && !WuSearching;
+
+        /// <summary>True while either enumerating devices or checking them against Windows Update.</summary>
+        public bool DriverBusy => DriverScanning || WuSearching;
+
+        /// <summary>Status line for the progress panel — reflects which phase is running.</summary>
+        public string DriverBusyText => WuSearching ? L["drv.wuSearching"] : L["drv.scanning"];
+
+        /// <summary>The "scan complete" footer shows only after both phases finish.</summary>
+        public bool DriverCheckComplete => DriverScanDone && !DriverBusy;
+
+        public int DriverScanProgress
+        {
+            get => _driverScanProgress;
+            private set => SetProperty(ref _driverScanProgress, value);
+        }
+
+        public string DriverScanDevice
+        {
+            get => _driverScanDevice;
+            private set { if (SetProperty(ref _driverScanDevice, value)) OnPropertyChanged(nameof(DriverCheckingText)); }
+        }
+
+        /// <summary>True once a scan has completed at least once (drives the "scan complete" footer).</summary>
+        public bool DriverScanDone
+        {
+            get => _driverScanDone;
+            private set => SetProperty(ref _driverScanDone, value);
+        }
+
+        public bool HasDrivers => Drivers.Count > 0;
+        public int DriverTotalCount => Drivers.Count;
+        // Counts reflect real per-device WU results — 0/0 until the user runs a Windows Update search.
+        public int DriverOutdatedCount => Drivers.Count(d => d.IsOutdated);
+        public int DriverUptodateCount => Drivers.Count(d => d.IsUpToDate);
+        public string DriverTotalText => string.Format(L["drv.totalFmt"], Drivers.Count);
+        public string DriverCheckingText => string.Format(L["drv.checkingFmt"], DriverScanDevice);
+
+        private async Task ScanDriversAsync()
+        {
+            if (DriverScanning)
+                return;
+
+            _driversLoaded = true;
+            DriverScanning = true;
+            DriverScanDone = false;
+            DriverScanProgress = 0;
+            Drivers.Clear();
+            RaiseDriverCounts();
+
+            var progress = new Progress<DriverScanProgress>(p =>
+            {
+                DriverScanProgress = p.Percent;
+                DriverScanDevice = p.Device;
+            });
+
+            try
+            {
+                var found = await _driverService.ScanAsync(progress);
+                Drivers.Clear();
+                foreach (var d in found)
+                    Drivers.Add(d);
+            }
+            catch (Exception)
+            {
+                // Best-effort: an empty list shows the empty state.
+            }
+            finally
+            {
+                DriverScanning = false;
+                DriverScanDone = true;
+                RaiseDriverCounts();
+                UpdateBadges();
+            }
+
+            // One scan does the full job: after listing devices, check them against Windows Update
+            // so each row resolves to "up to date" / "update available" instead of staying "not checked".
+            if (Drivers.Count > 0)
+                await WuSearchAsync();
+        }
+
+        private void RaiseDriverCounts()
+        {
+            OnPropertyChanged(nameof(HasDrivers));
+            OnPropertyChanged(nameof(DriverTotalCount));
+            OnPropertyChanged(nameof(DriverOutdatedCount));
+            OnPropertyChanged(nameof(DriverUptodateCount));
+            OnPropertyChanged(nameof(DriverTotalText));
+            OnPropertyChanged(nameof(DriverShowEmpty));
+        }
+
+        // ── Windows Update driver search ──────────────────────────────────────
+
+        public ObservableCollection<WuDriverUpdate> WuUpdates { get; } = new();
+
+        public bool WuSearching
+        {
+            get => _wuSearching;
+            private set
+            {
+                if (SetProperty(ref _wuSearching, value))
+                {
+                    OnPropertyChanged(nameof(DriverShowEmpty));
+                    OnPropertyChanged(nameof(DriverBusy));
+                    OnPropertyChanged(nameof(DriverBusyText));
+                    OnPropertyChanged(nameof(DriverCheckComplete));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        private async Task WuSearchAsync()
+        {
+            if (_wuSearching) return;
+            WuSearching = true;
+            WuUpdates.Clear();
+            // Re-arm every device to "not checked" for the duration of the search.
+            foreach (var d in Drivers) d.SetWuResult(null);
+
+            try
+            {
+                var found = await DriverService.WuSearchAsync();
+                foreach (var u in found) WuUpdates.Add(u);
+                // Mark each device: update available if WU returned a matching driver, else up to date.
+                foreach (var d in Drivers) d.SetWuResult(WuUpdates.Any(d.MatchesWu));
+            }
+            catch
+            {
+                // WU unavailable — leave devices "not checked" rather than claiming a result.
+            }
+            finally
+            {
+                WuSearching = false;
+                RaiseDriverCounts();
+                UpdateBadges();
+            }
+        }
+
+        /// <summary>Installs the WU update matching a single device, with the row showing a spinner.</summary>
+        private async Task UpdateOneDriverAsync(DriverInfo driver)
+        {
+            if (driver.IsInstalling) return;
+            var match = WuUpdates.FirstOrDefault(driver.MatchesWu);
+            if (match == null) return;
+
+            driver.IsInstalling = true;
+            CommandManager.InvalidateRequerySuggested();
+            try
+            {
+                if (await DriverService.WuInstallAsync(match.Title))
+                {
+                    driver.SetWuResult(false);     // now up to date
+                    WuUpdates.Remove(match);
+                }
+            }
+            finally
+            {
+                driver.IsInstalling = false;
+                RaiseDriverCounts();
+                UpdateBadges();
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        /// <summary>Installs every pending driver update in one elevated pass; all flagged rows spin.</summary>
+        private async Task UpdateAllDriversAsync()
+        {
+            var targets = Drivers.Where(d => d.IsOutdated && !d.IsInstalling).ToList();
+            if (targets.Count == 0) return;
+
+            foreach (var d in targets) d.IsInstalling = true;
+            CommandManager.InvalidateRequerySuggested();
+            try
+            {
+                if (await DriverService.WuInstallAsync(null))
+                {
+                    foreach (var d in targets) d.SetWuResult(false);
+                    WuUpdates.Clear();
+                }
+            }
+            finally
+            {
+                foreach (var d in targets) d.IsInstalling = false;
+                RaiseDriverCounts();
+                UpdateBadges();
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
         // ===================== Scheduler =====================
 
         public ICommand FreqCommand { get; }
         public ICommand SaveScheduleCommand { get; }
+        public ICommand TimeUpCommand { get; }
+        public ICommand TimeDownCommand { get; }
+        public ICommand ToggleAmCommand { get; }
+        public ICommand TogglePmCommand { get; }
 
         // Creates/removes the Windows scheduled task and persists the choice.
         private void SaveSchedule()
         {
+            // schtasks /ST always expects 24-hour HH:MM regardless of display language.
+            var time24 = $"{_scheduleTime.Hours:D2}:{_scheduleTime.Minutes:D2}";
             var ok = SchedulerEnabled
-                ? SchedulerService.Create(SchedulerFreq)
+                ? SchedulerService.Create(SchedulerFreq, time24)
                 : SchedulerService.Remove();
             SaveSettings();
 
@@ -1309,6 +1572,71 @@ namespace SwiftClean.ViewModels
         public bool IsFreqDaily => SchedulerFreq == "daily";
         public bool IsFreqWeekly => SchedulerFreq == "weekly";
         public bool IsFreqMonthly => SchedulerFreq == "monthly";
+
+        public bool SchedTimeIsAm => _scheduleTime.Hours < 12;
+        public bool SchedTimeIsPm => _scheduleTime.Hours >= 12;
+
+        private void RaiseTimeProps()
+        {
+            OnPropertyChanged(nameof(ScheduleTimeText));
+            OnPropertyChanged(nameof(SchedTimeIsAm));
+            OnPropertyChanged(nameof(SchedTimeIsPm));
+        }
+
+        /// <summary>
+        /// EN: 12-hour "h:mm" (no suffix — AM/PM chosen via toggle buttons).
+        /// RU: 24-hour "HH:mm". Setter accepts both; invalid input keeps the current value.
+        /// </summary>
+        public string ScheduleTimeText
+        {
+            get
+            {
+                if (Loc.Instance.IsEnglish)
+                {
+                    var h = _scheduleTime.Hours % 12;
+                    if (h == 0) h = 12;
+                    return $"{h}:{_scheduleTime.Minutes:D2}";
+                }
+                return $"{_scheduleTime.Hours:D2}:{_scheduleTime.Minutes:D2}";
+            }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) { RaiseTimeProps(); return; }
+                var input = value.Trim();
+                if (TimeSpan.TryParseExact(input, new[] { @"h\:mm", @"hh\:mm" },
+                        CultureInfo.InvariantCulture, out var ts))
+                {
+                    if (Loc.Instance.IsEnglish && ts.Hours <= 12)
+                    {
+                        var h = ts.Hours % 12;
+                        if (SchedTimeIsPm) h += 12;
+                        _scheduleTime = new TimeSpan(h, ts.Minutes, 0);
+                    }
+                    else
+                    {
+                        _scheduleTime = new TimeSpan(ts.Hours, ts.Minutes, 0);
+                    }
+                }
+                else if (DateTime.TryParse(input, CultureInfo.CurrentCulture,
+                             DateTimeStyles.NoCurrentDateDefault, out var dt))
+                {
+                    _scheduleTime = new TimeSpan(dt.Hour, dt.Minute, 0);
+                }
+                RaiseTimeProps();
+            }
+        }
+
+        private void StepTime(int minutes)
+        {
+            var total = ((int)_scheduleTime.TotalMinutes + minutes + 1440) % 1440;
+            _scheduleTime = TimeSpan.FromMinutes(total);
+            RaiseTimeProps();
+        }
+
+        // "What to clean" — the categories the scheduled auto-clean removes.
+        public bool SchedCleanTemp { get => _schedCleanTemp; set => SetProperty(ref _schedCleanTemp, value); }
+        public bool SchedCleanRecycle { get => _schedCleanRecycle; set => SetProperty(ref _schedCleanRecycle, value); }
+        public bool SchedCleanCache { get => _schedCleanCache; set => SetProperty(ref _schedCleanCache, value); }
 
         // ===================== Settings =====================
 
@@ -1342,6 +1670,10 @@ namespace SwiftClean.ViewModels
             Autostart = _autostartEnabled,
             SchedulerEnabled = _schedulerEnabled,
             SchedulerFreq = _schedulerFreq,
+            SchedulerTime = $"{_scheduleTime.Hours:D2}:{_scheduleTime.Minutes:D2}",
+            SchedulerCleanTemp = _schedCleanTemp,
+            SchedulerCleanRecycle = _schedCleanRecycle,
+            SchedulerCleanCache = _schedCleanCache,
         });
 
         // ===================== Status bar (CPU / RAM) =====================
@@ -1363,9 +1695,16 @@ namespace SwiftClean.ViewModels
         {
             var cleaning = NavigationItems.FirstOrDefault(n => n.Id == "cleaning");
             var registry = NavigationItems.FirstOrDefault(n => n.Id == "registry");
+            var drivers = NavigationItems.FirstOrDefault(n => n.Id == "drivers");
 
             if (cleaning is not null)
                 cleaning.Badge = HasScanData ? CleanItems.Count(i => i.IsSelected).ToString() : null;
+
+            if (drivers is not null)
+            {
+                var outdated = Drivers.Count(d => d.IsOutdated);
+                drivers.Badge = outdated > 0 ? outdated.ToString() : null;
+            }
 
             if (registry is not null)
             {

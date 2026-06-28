@@ -1,0 +1,1054 @@
+<Window x:Class="SwiftClean.Installer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="clr-namespace:SwiftClean.Installer.Models"
+        Title="SwiftClean Setup" Width="780" Height="660"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+    <Grid>
+        <!-- Installer card (fixed 720×620, rounded, with drop shadow) -->
+        <Border Width="720" Height="620" CornerRadius="12" Background="{StaticResource WindowBrush}"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="48" ShadowDepth="0" Opacity="0.85" />
+            </Border.Effect>
+
+            <Grid>
+                <Grid.Clip>
+                    <RectangleGeometry Rect="0,0,720,620" RadiusX="12" RadiusY="12" />
+                </Grid.Clip>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="38" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- ════════ TITLE BAR ════════ -->
+                <Border Grid.Row="0" Background="{StaticResource TitleBarBrush}"
+                        BorderBrush="#1e1e24" BorderThickness="0,0,0,0.5"
+                        MouseLeftButtonDown="TitleBar_MouseDown">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="{StaticResource AppLogo}" Width="16" Height="16"
+                               Margin="14,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" FontWeight="Medium"
+                                   Foreground="{StaticResource TextFaintBrush}"
+                                   Text="{Binding TitleText}" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Width="46" Height="30" Click="Minimize_Click" Cursor="Hand"
+                                    Background="Transparent" BorderThickness="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" Background="Transparent" CornerRadius="4">
+                                            <Rectangle Width="10" Height="1" Fill="{StaticResource TextFaintBrush}" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="#1e1e24" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <Border Width="46" Height="30" Background="Transparent">
+                                <Border Width="9" Height="9" BorderBrush="{StaticResource TextFaintBrush}"
+                                        BorderThickness="1" CornerRadius="1" />
+                            </Border>
+                            <Button Width="46" Height="30" Click="Close_Click" Cursor="Hand"
+                                    Background="Transparent" BorderThickness="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" Background="Transparent" CornerRadius="4">
+                                            <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                       Foreground="{StaticResource TextFaintBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="{StaticResource CloseHoverBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ════════ INSTALL BODY ════════ -->
+                <Grid Grid.Row="1" Visibility="{Binding IsInstallMode, Converter={StaticResource BoolToVis}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ──── SIDEBAR ──── -->
+                    <Border Grid.Column="0" Background="{StaticResource SidebarBrush}"
+                            BorderBrush="#1a1a1e" BorderThickness="0,0,0.5,0" ClipToBounds="True">
+                        <Grid Margin="20,28">
+                            <!-- glow orb -->
+                            <Ellipse Width="200" Height="200" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                     Margin="-60,-60,0,0" IsHitTestVisible="False">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="#225b4fff" Offset="0" />
+                                        <GradientStop Color="#005b4fff" Offset="0.7" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+
+                            <DockPanel>
+                                <!-- Logo block -->
+                                <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,0,0,32">
+                                    <Border Width="68" Height="68" CornerRadius="18">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#5b4fff" BlurRadius="32" ShadowDepth="0" Opacity="0.5" />
+                                        </Border.Effect>
+                                        <Image Source="{StaticResource AppLogo}" Width="68" Height="68" />
+                                    </Border>
+                                    <TextBlock Text="SwiftClean" FontSize="16" FontWeight="Bold" Margin="0,12,0,0"
+                                               Foreground="{StaticResource TextBrightBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="version 1.0.0" FontSize="11" Margin="0,3,0,0"
+                                               Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Credits (bottom) -->
+                                <TextBlock DockPanel.Dock="Bottom" VerticalAlignment="Bottom" FontSize="10"
+                                           Foreground="{StaticResource TextFaintestBrush}" LineHeight="15"
+                                           TextWrapping="Wrap">
+                                    © 2025 Vyacheslav Protsenko<LineBreak />Free forever
+                                </TextBlock>
+
+                                <!-- Steps -->
+                                <ItemsControl ItemsSource="{Binding Steps}" DockPanel.Dock="Top">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type m:WizardStep}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <!-- dot + connector -->
+                                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                                    <Border x:Name="dot" Width="20" Height="20" CornerRadius="10"
+                                                            Background="{StaticResource ToggleOffBrush}"
+                                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1.5">
+                                                        <Grid>
+                                                            <TextBlock x:Name="check" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets"
+                                                                       FontSize="9" Foreground="White" Visibility="Collapsed"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            <Ellipse x:Name="adot" Width="6" Height="6" Fill="White"
+                                                                     Visibility="Collapsed" />
+                                                        </Grid>
+                                                    </Border>
+                                                    <Border x:Name="line" Width="1.5" Height="20"
+                                                            Background="{StaticResource ToggleOffBrush}" />
+                                                </StackPanel>
+                                                <!-- label -->
+                                                <StackPanel Grid.Column="1" Margin="12,1,0,0">
+                                                    <TextBlock x:Name="label" Text="{Binding Label}" FontSize="12"
+                                                               Foreground="{StaticResource TextFaintestBrush}" />
+                                                    <TextBlock x:Name="sub" Text="{Binding Sub}" FontSize="10" Margin="0,2,0,0"
+                                                               Foreground="{StaticResource TextFaintBrush}" Visibility="Collapsed" />
+                                                </StackPanel>
+                                            </Grid>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsLast}" Value="True">
+                                                    <Setter TargetName="line" Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Done}" Value="True">
+                                                    <Setter TargetName="dot" Property="Background" Value="{StaticResource AccentBrush}" />
+                                                    <Setter TargetName="dot" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                                    <Setter TargetName="check" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="label" Property="Foreground" Value="{StaticResource BlueBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding LineLit}" Value="True">
+                                                    <Setter TargetName="line" Property="Background" Value="{StaticResource AccentBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Active}" Value="True">
+                                                    <Setter TargetName="dot" Property="Background" Value="{StaticResource AccentBrush}" />
+                                                    <Setter TargetName="dot" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                                    <Setter TargetName="adot" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="label" Property="Foreground" Value="{StaticResource TextBrightBrush}" />
+                                                    <Setter TargetName="label" Property="FontWeight" Value="SemiBold" />
+                                                    <Setter TargetName="sub" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="dot" Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect Color="#5b4fff" BlurRadius="12" ShadowDepth="0" Opacity="0.6" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DockPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ──── RIGHT CONTENT ──── -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="64" />
+                        </Grid.RowDefinitions>
+
+                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled" Padding="32,32,32,0">
+                            <Grid>
+                                <!-- ═══ WELCOME ═══ -->
+                                <StackPanel Visibility="{Binding IsWelcome, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Welcome!" FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,10" />
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextFaintBrush}"
+                                               LineHeight="22" Margin="0,0,0,24" TextWrapping="Wrap">
+                                        This wizard will install <Run Text="SwiftClean 1.0.0" Foreground="{StaticResource TextMutedBrush}" FontWeight="Medium" /> on your computer.<LineBreak />
+                                        The program is completely free — no ads, no subscriptions.
+                                    </TextBlock>
+
+                                    <!-- features -->
+                                    <ItemsControl Margin="0,0,0,22">
+                                        <ItemsControl.Resources>
+                                            <Style TargetType="Border" x:Key="Feat">
+                                                <Setter Property="Background" Value="{StaticResource CardBrush}" />
+                                                <Setter Property="CornerRadius" Value="9" />
+                                                <Setter Property="BorderBrush" Value="#1e1e24" />
+                                                <Setter Property="BorderThickness" Value="0.5" />
+                                                <Setter Property="Padding" Value="14,12" />
+                                                <Setter Property="Margin" Value="0,0,0,10" />
+                                            </Style>
+                                        </ItemsControl.Resources>
+                                        <!-- 1 -->
+                                        <Border Style="{StaticResource Feat}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource TilePurpleBrush}">
+                                                    <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                               Foreground="{StaticResource AccentLightBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Deep cleaning" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                                                    <TextBlock Text="Temporary files, cache, recycle bin" FontSize="11" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <!-- 2 -->
+                                        <Border Style="{StaticResource Feat}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource TileBlueBrush}">
+                                                    <TextBlock Text="&#xEBD2;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                               Foreground="{StaticResource BlueBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Registry optimization" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                                                    <TextBlock Text="Fixing registry errors" FontSize="11" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <!-- 3 -->
+                                        <Border Style="{StaticResource Feat}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource TileAmberBrush}">
+                                                    <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                               Foreground="{StaticResource AmberBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Startup management" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                                                    <TextBlock Text="Control what starts with Windows" FontSize="11" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <!-- 4 -->
+                                        <Border Style="{StaticResource Feat}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource TileGreenBrush}">
+                                                    <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                                               Foreground="{StaticResource GreenBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="Privacy" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                                                    <TextBlock Text="No ads, no tracking" FontSize="11" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </ItemsControl>
+
+                                    <!-- sys reqs -->
+                                    <WrapPanel>
+                                        <WrapPanel.Resources>
+                                            <Style TargetType="Border" x:Key="Req">
+                                                <Setter Property="Background" Value="{StaticResource ChipBrush}" />
+                                                <Setter Property="CornerRadius" Value="5" />
+                                                <Setter Property="BorderBrush" Value="#1e1e24" />
+                                                <Setter Property="BorderThickness" Value="0.5" />
+                                                <Setter Property="Padding" Value="10,4" />
+                                                <Setter Property="Margin" Value="0,0,6,6" />
+                                            </Style>
+                                            <Style TargetType="TextBlock" x:Key="ReqT">
+                                                <Setter Property="FontSize" Value="11" />
+                                                <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+                                            </Style>
+                                        </WrapPanel.Resources>
+                                        <Border Style="{StaticResource Req}"><TextBlock Style="{StaticResource ReqT}" Text="Windows 10 / 11" /></Border>
+                                        <Border Style="{StaticResource Req}"><TextBlock Style="{StaticResource ReqT}" Text=".NET 8.0+" /></Border>
+                                        <Border Style="{StaticResource Req}"><TextBlock Style="{StaticResource ReqT}" Text="100 MB RAM" /></Border>
+                                        <Border Style="{StaticResource Req}"><TextBlock Style="{StaticResource ReqT}" Text="50 MB disk" /></Border>
+                                        <Border Style="{StaticResource Req}"><TextBlock Style="{StaticResource ReqT}" Text="x64" /></Border>
+                                    </WrapPanel>
+                                </StackPanel>
+
+                                <!-- ═══ LICENSE ═══ -->
+                                <StackPanel Visibility="{Binding IsLicense, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="License" FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,8" />
+                                    <TextBlock Text="Please read the agreement before installing" FontSize="13"
+                                               Foreground="{StaticResource TextFaintBrush}" Margin="0,0,0,14" />
+                                    <Border Height="220" Background="{StaticResource InsetBrush}" CornerRadius="9"
+                                            BorderBrush="#1e1e24" BorderThickness="0.5" Padding="16">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                            <TextBlock FontSize="11" Foreground="#5a5a68" LineHeight="19" TextWrapping="Wrap">
+                                                <Run Text="SWIFTCLEAN LICENSE AGREEMENT" Foreground="#8b8b9a" FontSize="12" FontWeight="Bold" /><LineBreak /><LineBreak />
+                                                This agreement is made between you and the developer, Vyacheslav Protsenko (the "Developer").<LineBreak /><LineBreak />
+                                                <Run Text="1. Grant of license." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> The Developer grants you a perpetual, non-exclusive, free license to use the SwiftClean software (the "Software").<LineBreak /><LineBreak />
+                                                <Run Text="2. Free use." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> The Software is provided free of charge, with no hidden fees, subscriptions, or advertising.<LineBreak /><LineBreak />
+                                                <Run Text="3. Restrictions." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> You may not sell, resell, or otherwise commercially exploit the Software. You may not decompile or modify the Software without the Developer's written consent.<LineBreak /><LineBreak />
+                                                <Run Text="4. No warranty." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> The Software is provided "as is". The Developer is not liable for any possible damages.<LineBreak /><LineBreak />
+                                                <Run Text="5. Privacy." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> The Software does not collect personal data and does not send any information to third-party servers.<LineBreak /><LineBreak />
+                                                <Run Text="6. Updates." Foreground="{StaticResource TextFaintBrush}" FontWeight="Bold" /> The Developer may release updates. Use of updates is governed by this agreement.<LineBreak /><LineBreak />
+                                                By using the Software, you confirm that you have read this agreement and accept its terms.
+                                            </TextBlock>
+                                        </ScrollViewer>
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                        <ToggleButton Style="{StaticResource CheckSquare}" IsChecked="{Binding LicenseAccepted}" />
+                                        <TextBlock Text="I have read and accept the terms of the license agreement"
+                                                   FontSize="13" Foreground="{StaticResource TextSoftBrush}"
+                                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- ═══ PATH ═══ -->
+                                <StackPanel Visibility="{Binding IsPath, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Installation folder" FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,8" />
+                                    <TextBlock Text="Choose where to install SwiftClean" FontSize="13"
+                                               Foreground="{StaticResource TextFaintBrush}" Margin="0,0,0,20" />
+                                    <!-- path input -->
+                                    <Grid Margin="0,0,0,20">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{StaticResource InsetBrush}" CornerRadius="8"
+                                                BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5" Padding="14,10">
+                                            <TextBlock Text="{Binding TargetDir}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                        </Border>
+                                        <Button Grid.Column="1" Margin="8,0,0,0" Command="{Binding BrowseCommand}" Cursor="Hand">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="b" Background="{StaticResource ToggleOffBrush}" CornerRadius="8"
+                                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5" Padding="16,10">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                                       Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                                                            <TextBlock Text="Browse" FontSize="12" Margin="6,0,0,0"
+                                                                       Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="b" Property="Background" Value="#252530" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </Grid>
+                                    <!-- disk info cards -->
+                                    <Grid Margin="0,0,0,20">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{StaticResource CardBrush}" CornerRadius="9"
+                                                BorderBrush="#1e1e24" BorderThickness="0.5" Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Required" FontSize="11" Foreground="{StaticResource TextDimBrush}" Margin="0,0,0,6" />
+                                                <TextBlock Text="{Binding RequiredText}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrightBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Background="{StaticResource CardBrush}" CornerRadius="9"
+                                                BorderBrush="#1e1e24" BorderThickness="0.5" Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Free on drive C:" FontSize="11" Foreground="{StaticResource TextDimBrush}" Margin="0,0,0,6" />
+                                                <TextBlock Text="{Binding FreeSpaceText}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BlueBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                    <!-- disk bar -->
+                                    <Border Background="{StaticResource InsetBrush}" CornerRadius="9"
+                                            BorderBrush="#1e1e24" BorderThickness="0.5" Padding="14">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <TextBlock Text="Drive C:" FontSize="11" Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Left" />
+                                                <TextBlock Text="{Binding DiskUsageText}" FontSize="11" Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Right" />
+                                            </Grid>
+                                            <ProgressBar Height="5" Minimum="0" Maximum="100" Value="{Binding DiskUsedPercent, Mode=OneWay}"
+                                                         Background="{StaticResource BorderDimBrush}" Foreground="{StaticResource BarGradient}"
+                                                         BorderThickness="0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- options -->
+                                    <StackPanel Margin="0,16,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <ToggleButton Style="{StaticResource CheckSquare}" IsChecked="{Binding DesktopShortcut}" />
+                                            <TextBlock Text="Create a desktop shortcut" FontSize="12" Margin="10,0,0,0"
+                                                       Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ToggleButton Style="{StaticResource CheckSquare}" IsChecked="{Binding StartMenuShortcut}" />
+                                            <TextBlock Text="Add to the Start menu" FontSize="12" Margin="10,0,0,0"
+                                                       Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- ═══ INSTALLING ═══ -->
+                                <StackPanel Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Installing..." FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,8" />
+                                    <TextBlock Text="Please do not close this window" FontSize="13"
+                                               Foreground="{StaticResource TextFaintBrush}" Margin="0,0,0,24" />
+                                    <!-- ring + bar -->
+                                    <Grid Margin="0,0,0,24">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0" Width="80" Height="80">
+                                            <Canvas Width="80" Height="80">
+                                                <Ellipse Width="68" Height="68" Canvas.Left="6" Canvas.Top="6"
+                                                         Stroke="{StaticResource BorderDimBrush}" StrokeThickness="6" />
+                                                <Path Canvas.Left="0" Canvas.Top="0" Stretch="None"
+                                                      Stroke="{StaticResource RingGradient}" StrokeThickness="6"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Data="{Binding ProgressArcData, Converter={StaticResource StrToGeom}}" />
+                                            </Canvas>
+                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                       FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrightBrush}">
+                                                <Run Text="{Binding InstallPct, Mode=OneWay}" /><Run Text="%" />
+                                            </TextBlock>
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding InstallPhase}" FontSize="12"
+                                                       Foreground="{StaticResource TextSoftBrush}" Margin="0,0,0,6" />
+                                            <ProgressBar Height="4" Minimum="0" Maximum="100" Value="{Binding InstallPct, Mode=OneWay}"
+                                                         Background="{StaticResource BorderDimBrush}" Foreground="{StaticResource BarGradient}"
+                                                         BorderThickness="0" />
+                                            <TextBlock Text="{Binding InstallFile}" FontSize="10" Margin="0,6,0,0"
+                                                       FontFamily="Consolas" Foreground="{StaticResource TextFaintestBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <!-- log -->
+                                    <Border Height="140" Background="{StaticResource LogBgBrush}" CornerRadius="9"
+                                            BorderBrush="#1a1a1e" BorderThickness="0.5" Padding="14,10">
+                                        <ScrollViewer x:Name="LogScroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding InstallLog}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type m:InstallLogLine}">
+                                                        <TextBlock Text="{Binding Text}" FontSize="11" FontFamily="Consolas" LineHeight="18"
+                                                                   Foreground="{Binding Kind, Converter={StaticResource LogBrush}}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- ═══ DONE ═══ -->
+                                <StackPanel Visibility="{Binding IsDone, Converter={StaticResource BoolToVis}}"
+                                            HorizontalAlignment="Center" Margin="0,8,0,0">
+                                    <Border Width="72" Height="72" CornerRadius="20" Background="{StaticResource SuccessTileGradient}"
+                                            BorderBrush="#2a4a2a" BorderThickness="0.5" Margin="0,0,0,20" HorizontalAlignment="Center">
+                                        <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="34"
+                                                   Foreground="{StaticResource GreenBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="Installation complete!" FontSize="22" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextFaintBrush}" LineHeight="22"
+                                               TextAlignment="Center" MaxWidth="320" Margin="0,0,0,28" TextWrapping="Wrap">
+                                        SwiftClean was installed successfully.<LineBreak />Click "Finish" to close the wizard.
+                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,28">
+                                        <StackPanel.Resources>
+                                            <Style TargetType="Border" x:Key="Stat">
+                                                <Setter Property="Background" Value="{StaticResource CardBrush}" />
+                                                <Setter Property="CornerRadius" Value="8" />
+                                                <Setter Property="BorderBrush" Value="#1e1e24" />
+                                                <Setter Property="BorderThickness" Value="0.5" />
+                                                <Setter Property="Padding" Value="16,8" />
+                                                <Setter Property="Margin" Value="5,0" />
+                                            </Style>
+                                        </StackPanel.Resources>
+                                        <Border Style="{StaticResource Stat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding RequiredText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BlueBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Installed" FontSize="10" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource Stat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding FileCountText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource GreenBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Files" FontSize="10" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource Stat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding ElapsedText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AmberBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Time" FontSize="10" Margin="0,2,0,0" Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <ToggleButton Style="{StaticResource CheckSquare}" IsChecked="{Binding LaunchAfter}" />
+                                        <TextBlock Text="Launch SwiftClean after closing" FontSize="13" Margin="10,0,0,0"
+                                                   Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+
+                        <!-- ──── BOTTOM NAV ──── -->
+                        <Border Grid.Row="1" Background="{StaticResource NavBarBrush}"
+                                BorderBrush="#1a1a1e" BorderThickness="0,0.5,0,0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,28,0">
+                                <!-- Cancel -->
+                                <Button Command="{Binding CancelCommand}" Cursor="Hand" Margin="0,0,8,0"
+                                        Visibility="{Binding ShowCancel, Converter={StaticResource BoolToVis}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Background="Transparent"
+                                                    BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5" Padding="18,8">
+                                                <TextBlock Text="Cancel" FontSize="13" Foreground="{StaticResource TextFaintBrush}" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Background" Value="#1a1a1e" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <!-- Back -->
+                                <Button Command="{Binding BackCommand}" Cursor="Hand" Margin="0,0,8,0"
+                                        Visibility="{Binding ShowBack, Converter={StaticResource BoolToVis}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Background="Transparent"
+                                                    BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0.5" Padding="18,8">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE72B;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                               Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="Back" FontSize="13" Margin="6,0,0,0"
+                                                               Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Background" Value="#1a1a1e" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <!-- Next / Install / Finish -->
+                                <Button Command="{Binding NextCommand}" Cursor="Hand"
+                                        IsEnabled="{Binding NextEnabled}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Background="{StaticResource AccentGradient}" Padding="22,8">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#5b4fff" BlurRadius="18" ShadowDepth="0" Opacity="0.45" />
+                                                </Border.Effect>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Grid Width="16" Height="16" Margin="0,0,6,0"
+                                                          Visibility="{Binding ShowSpinner, Converter={StaticResource BoolToVis}}">
+                                                        <Ellipse Width="16" Height="16" Stroke="#4DFFFFFF" StrokeThickness="2" />
+                                                        <Path Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round"
+                                                              Data="M8,0 A8,8 0 0 1 16,8" RenderTransformOrigin="0.5,0.5">
+                                                            <Path.RenderTransform>
+                                                                <RotateTransform x:Name="spin" />
+                                                            </Path.RenderTransform>
+                                                            <Path.Triggers>
+                                                                <EventTrigger RoutedEvent="Loaded">
+                                                                    <BeginStoryboard>
+                                                                        <Storyboard RepeatBehavior="Forever">
+                                                                            <DoubleAnimation Storyboard.TargetName="spin" Storyboard.TargetProperty="Angle"
+                                                                                             From="0" To="360" Duration="0:0:0.8" />
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </EventTrigger>
+                                                            </Path.Triggers>
+                                                        </Path>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding NextLabel}" FontSize="13" FontWeight="Medium"
+                                                               Foreground="White" VerticalAlignment="Center" />
+                                                    <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="11" Margin="6,0,0,0"
+                                                               Foreground="White" VerticalAlignment="Center"
+                                                               Visibility="{Binding ShowNextArrow, Converter={StaticResource BoolToVis}}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="b" Property="Background" Value="#1a1a28" />
+                                                    <Setter TargetName="b" Property="Effect" Value="{x:Null}" />
+                                                    <Setter TargetName="b" Property="Opacity" Value="0.6" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- ════════ UNINSTALL BODY ════════ -->
+                <Grid Grid.Row="1" Background="{StaticResource WindowBrush}"
+                      Visibility="{Binding IsUninstallMode, Converter={StaticResource BoolToVis}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ──── SIDEBAR ──── -->
+                    <Border Grid.Column="0" Background="{StaticResource SidebarBrush}"
+                            BorderBrush="#1a1a1e" BorderThickness="0,0,0.5,0" ClipToBounds="True">
+                        <Grid Margin="22,28">
+                            <!-- red glow orb -->
+                            <Ellipse Width="200" Height="200" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                     Margin="-60,-60,0,0" IsHitTestVisible="False">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="#22e05c5c" Offset="0" />
+                                        <GradientStop Color="#00e05c5c" Offset="0.7" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+
+                            <DockPanel>
+                                <!-- Logo + uninstall badge -->
+                                <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,0,0,30">
+                                    <Grid Width="64" Height="64">
+                                        <Border Width="64" Height="64" CornerRadius="16">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#e05c5c" BlurRadius="32" ShadowDepth="0" Opacity="0.4" />
+                                            </Border.Effect>
+                                            <Image Source="{StaticResource AppLogo}" Width="64" Height="64" />
+                                        </Border>
+                                        <Border Width="22" Height="22" CornerRadius="11" Background="#c42b2b"
+                                                BorderBrush="#0d0d10" BorderThickness="2"
+                                                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-4,-4">
+                                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="SwiftClean" FontSize="16" FontWeight="Bold" Margin="0,14,0,0"
+                                               Foreground="{StaticResource TextBrightBrush}" HorizontalAlignment="Center" />
+                                    <TextBlock Text="version 1.0.0" FontSize="11" Margin="0,3,0,0"
+                                               Foreground="{StaticResource TextDimBrush}" HorizontalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Credits (bottom) -->
+                                <TextBlock DockPanel.Dock="Bottom" VerticalAlignment="Bottom" FontSize="10"
+                                           Foreground="{StaticResource TextFaintestBrush}" LineHeight="15">
+                                    © 2025 Vyacheslav Protsenko
+                                </TextBlock>
+
+                                <!-- Steps (red) -->
+                                <ItemsControl ItemsSource="{Binding UninstallSteps}" DockPanel.Dock="Top">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type m:WizardStep}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                                    <Border x:Name="dot" Width="20" Height="20" CornerRadius="10"
+                                                            Background="{StaticResource ToggleOffBrush}"
+                                                            BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1.5">
+                                                        <Grid>
+                                                            <TextBlock x:Name="check" Text="&#xE73E;" FontFamily="Segoe MDL2 Assets"
+                                                                       FontSize="9" Foreground="White" Visibility="Collapsed"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            <Ellipse x:Name="adot" Width="6" Height="6" Fill="White" Visibility="Collapsed" />
+                                                        </Grid>
+                                                    </Border>
+                                                    <Border x:Name="line" Width="1.5" Height="22"
+                                                            Background="{StaticResource ToggleOffBrush}" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="12,1,0,0">
+                                                    <TextBlock x:Name="label" Text="{Binding Label}" FontSize="12"
+                                                               Foreground="#38383f" />
+                                                    <TextBlock x:Name="sub" Text="{Binding Sub}" FontSize="10" Margin="0,2,0,0"
+                                                               Foreground="#6b6b78" Visibility="Collapsed" />
+                                                </StackPanel>
+                                            </Grid>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsLast}" Value="True">
+                                                    <Setter TargetName="line" Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Done}" Value="True">
+                                                    <Setter TargetName="dot" Property="Background" Value="#c42b2b" />
+                                                    <Setter TargetName="dot" Property="BorderBrush" Value="#c42b2b" />
+                                                    <Setter TargetName="check" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="label" Property="Foreground" Value="#e05c5c" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding LineLit}" Value="True">
+                                                    <Setter TargetName="line" Property="Background" Value="#c42b2b" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Active}" Value="True">
+                                                    <Setter TargetName="dot" Property="Background" Value="#c42b2b" />
+                                                    <Setter TargetName="dot" Property="BorderBrush" Value="#c42b2b" />
+                                                    <Setter TargetName="adot" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="label" Property="Foreground" Value="{StaticResource TextBrightBrush}" />
+                                                    <Setter TargetName="label" Property="FontWeight" Value="SemiBold" />
+                                                    <Setter TargetName="sub" Property="Visibility" Value="Visible" />
+                                                    <Setter TargetName="dot" Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect Color="#c42b2b" BlurRadius="12" ShadowDepth="0" Opacity="0.55" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DockPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ──── RIGHT CONTENT ──── -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="60" />
+                        </Grid.RowDefinitions>
+
+                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled" Padding="34,28,34,0">
+                            <Grid>
+                                <!-- ═══ CONFIRM ═══ -->
+                                <StackPanel Visibility="{Binding IsUConfirm, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Uninstall program" FontSize="21" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,8" />
+                                    <TextBlock Text="You are about to remove SwiftClean from your computer" FontSize="13"
+                                               Foreground="{StaticResource TextFaintBrush}" Margin="0,0,0,22" />
+
+                                    <!-- Warning -->
+                                    <Border Background="#160e0e" BorderBrush="#2a1a1a" BorderThickness="0.5"
+                                            CornerRadius="10" Padding="16,14" Margin="0,0,0,18">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                                                       Foreground="#e05c5c" VerticalAlignment="Top" Margin="0,1,12,0" />
+                                            <StackPanel>
+                                                <TextBlock Text="This action cannot be undone" FontSize="13" FontWeight="Medium"
+                                                           Foreground="#c8c8d4" Margin="0,0,0,4" />
+                                                <TextBlock Text="All program files, settings, and data will be removed. Recovery is not possible without reinstalling."
+                                                           FontSize="12" Foreground="#7a4a4a" TextWrapping="Wrap" MaxWidth="360"
+                                                           HorizontalAlignment="Left" LineHeight="18" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- What will be removed -->
+                                    <Border Background="#111114" BorderBrush="#1e1e22" BorderThickness="0.5"
+                                            CornerRadius="10" Padding="16,14" Margin="0,0,0,18">
+                                        <StackPanel>
+                                            <TextBlock Text="WILL BE REMOVED" FontSize="11" FontWeight="Medium"
+                                                       Foreground="#38383f" Margin="0,0,0,12" />
+                                            <ItemsControl ItemsSource="{Binding RemoveItems}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type m:RemoveItem}">
+                                                        <Grid Margin="0,0,0,9">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7"
+                                                                    Background="#1f1414" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                                                           Foreground="#c04040" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+                                                            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Label}" FontSize="12" Foreground="#8b8b9a" />
+                                                                <TextBlock Text="{Binding Path}" FontSize="10" Foreground="#38383f" Margin="0,1,0,0"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="2" Text="{Binding Size}" FontSize="11"
+                                                                       Foreground="#45454f" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Keep settings -->
+                                    <StackPanel Orientation="Horizontal">
+                                        <ToggleButton Style="{StaticResource CheckSquare}" IsChecked="{Binding KeepSettings}" />
+                                        <TextBlock Text="Keep user settings" FontSize="12" Margin="10,0,0,0"
+                                                   Foreground="{StaticResource TextFaintBrush}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- ═══ UNINSTALLING ═══ -->
+                                <StackPanel Visibility="{Binding IsURemoving, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Uninstalling..." FontSize="21" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" Margin="0,0,0,6" />
+                                    <TextBlock Text="Please do not close this window" FontSize="13"
+                                               Foreground="{StaticResource TextFaintBrush}" Margin="0,0,0,24" />
+
+                                    <!-- ring + bar -->
+                                    <Grid Margin="0,0,0,22">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Grid.Column="0" Width="80" Height="80">
+                                            <Canvas Width="80" Height="80">
+                                                <Ellipse Width="68" Height="68" Canvas.Left="6" Canvas.Top="6"
+                                                         Stroke="#1f1414" StrokeThickness="6" />
+                                                <Path Canvas.Left="0" Canvas.Top="0" Stretch="None" StrokeThickness="6"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Data="{Binding ProgressArcData, Converter={StaticResource StrToGeom}}">
+                                                    <Path.Stroke>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#c42b2b" Offset="0" />
+                                                            <GradientStop Color="#e05c5c" Offset="1" />
+                                                        </LinearGradientBrush>
+                                                    </Path.Stroke>
+                                                </Path>
+                                            </Canvas>
+                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                       FontSize="15" FontWeight="Bold" Foreground="#e05c5c">
+                                                <Run Text="{Binding InstallPct, Mode=OneWay}" /><Run Text="%" />
+                                            </TextBlock>
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding InstallPhase}" FontSize="12"
+                                                       Foreground="#8b8b9a" Margin="0,0,0,8" />
+                                            <ProgressBar Height="7" Minimum="0" Maximum="100" Value="{Binding InstallPct, Mode=OneWay}"
+                                                         Background="#1a1a1e" BorderThickness="0">
+                                                <ProgressBar.Foreground>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop Color="#c42b2b" Offset="0" />
+                                                        <GradientStop Color="#e05c5c" Offset="1" />
+                                                    </LinearGradientBrush>
+                                                </ProgressBar.Foreground>
+                                            </ProgressBar>
+                                            <TextBlock Text="{Binding InstallFile}" FontSize="10" Margin="0,6,0,0"
+                                                       FontFamily="Consolas" Foreground="{StaticResource TextFaintestBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- log -->
+                                    <Border Height="128" Background="{StaticResource LogBgBrush}" CornerRadius="9"
+                                            BorderBrush="#1a1a1e" BorderThickness="0.5" Padding="14,10">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding InstallLog}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type m:InstallLogLine}">
+                                                        <TextBlock Text="{Binding Text}" FontSize="11" FontFamily="Consolas" LineHeight="18"
+                                                                   Foreground="{Binding Kind, Converter={StaticResource LogBrush}}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- ═══ DONE ═══ -->
+                                <StackPanel Visibility="{Binding IsUDone, Converter={StaticResource BoolToVis}}"
+                                            HorizontalAlignment="Center" Margin="0,12,0,0">
+                                    <Border Width="72" Height="72" CornerRadius="20" Background="#0f1f17"
+                                            BorderBrush="#1a3a2a" BorderThickness="0.5" Margin="0,0,0,18" HorizontalAlignment="Center">
+                                        <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="34"
+                                                   Foreground="{StaticResource GreenBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="Uninstall complete" FontSize="21" FontWeight="Bold"
+                                               Foreground="{StaticResource TextBrightBrush}" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextFaintBrush}" LineHeight="22"
+                                               TextAlignment="Center" MaxWidth="320" Margin="0,0,0,26" TextWrapping="Wrap">
+                                        SwiftClean was successfully removed from your computer.<LineBreak />Thank you for using the program.
+                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <StackPanel.Resources>
+                                            <Style TargetType="Border" x:Key="UStat">
+                                                <Setter Property="Background" Value="#1a1a1f" />
+                                                <Setter Property="CornerRadius" Value="9" />
+                                                <Setter Property="BorderBrush" Value="#1e1e24" />
+                                                <Setter Property="BorderThickness" Value="0.5" />
+                                                <Setter Property="Padding" Value="18,10" />
+                                                <Setter Property="Margin" Value="5,0" />
+                                            </Style>
+                                        </StackPanel.Resources>
+                                        <Border Style="{StaticResource UStat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding UFreedText}" FontSize="18" FontWeight="Bold"
+                                                           Foreground="{StaticResource GreenBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Freed" FontSize="10" Margin="0,3,0,0"
+                                                           Foreground="#38383f" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource UStat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding UFileCountText}" FontSize="18" FontWeight="Bold"
+                                                           Foreground="{StaticResource BlueBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Files removed" FontSize="10" Margin="0,3,0,0"
+                                                           Foreground="#38383f" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource UStat}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding ElapsedText}" FontSize="18" FontWeight="Bold"
+                                                           Foreground="{StaticResource AmberBrush}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Time" FontSize="10" Margin="0,3,0,0"
+                                                           Foreground="#38383f" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+
+                        <!-- ──── BOTTOM NAV ──── -->
+                        <Border Grid.Row="1" Background="#0f0f11" BorderBrush="#1a1a1e" BorderThickness="0,0.5,0,0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                        VerticalAlignment="Center" Margin="0,0,24,0">
+                                <!-- Cancel (confirm only) -->
+                                <Button Command="{Binding CancelCommand}" Cursor="Hand" Margin="0,0,8,0"
+                                        Visibility="{Binding IsUConfirm, Converter={StaticResource BoolToVis}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Background="Transparent"
+                                                    BorderBrush="#2a2a35" BorderThickness="0.5" Padding="18,8">
+                                                <TextBlock Text="Cancel" FontSize="13" Foreground="{StaticResource TextFaintBrush}" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Background" Value="#1a1a1e" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Primary: Uninstall (confirm) -->
+                                <Button Command="{Binding UninstallCommand}" Cursor="Hand"
+                                        Visibility="{Binding IsUConfirm, Converter={StaticResource BoolToVis}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Padding="22,8">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#c42b2b" Offset="0" />
+                                                        <GradientStop Color="#e05c5c" Offset="1" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#c42b2b" BlurRadius="16" ShadowDepth="0" Opacity="0.4" />
+                                                </Border.Effect>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                               Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                    <TextBlock Text="Uninstall" FontSize="13" FontWeight="Medium" Foreground="White" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Opacity" Value="0.9" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+
+                                <!-- Primary: Uninstalling (disabled, spinner) -->
+                                <Border CornerRadius="7" Background="#1e1e28" Padding="22,8"
+                                        Visibility="{Binding IsURemoving, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid Width="14" Height="14" Margin="0,0,6,0">
+                                            <Ellipse Width="14" Height="14" Stroke="#4DFFFFFF" StrokeThickness="2" />
+                                            <Path Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round"
+                                                  Data="M7,0 A7,7 0 0 1 14,7" RenderTransformOrigin="0.5,0.5">
+                                                <Path.RenderTransform>
+                                                    <RotateTransform x:Name="uspin" />
+                                                </Path.RenderTransform>
+                                                <Path.Triggers>
+                                                    <EventTrigger RoutedEvent="Loaded">
+                                                        <BeginStoryboard>
+                                                            <Storyboard RepeatBehavior="Forever">
+                                                                <DoubleAnimation Storyboard.TargetName="uspin" Storyboard.TargetProperty="Angle"
+                                                                                 From="0" To="360" Duration="0:0:0.8" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Path.Triggers>
+                                            </Path>
+                                        </Grid>
+                                        <TextBlock Text="Uninstalling..." FontSize="13" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextSoftBrush}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Primary: Finish (done) -->
+                                <Button Command="{Binding CancelCommand}" Cursor="Hand"
+                                        Visibility="{Binding IsUDone, Converter={StaticResource BoolToVis}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" CornerRadius="7" Background="{StaticResource AccentGradient}" Padding="24,8">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#5b4fff" BlurRadius="16" ShadowDepth="0" Opacity="0.4" />
+                                                </Border.Effect>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                               Foreground="White" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                    <TextBlock Text="Finish" FontSize="13" FontWeight="Medium" Foreground="White" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Opacity" Value="0.92" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

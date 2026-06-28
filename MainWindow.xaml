@@ -237,6 +237,8 @@
                         <views:AppsView      Visibility="{Binding IsApps,      Converter={StaticResource BoolToVis}}"
                                              MaxHeight="{Binding ViewportHeight, ElementName=ContentScroller}" VerticalAlignment="Top" />
                         <views:DiskView      Visibility="{Binding IsDisk,      Converter={StaticResource BoolToVis}}" />
+                        <views:DriversView   Visibility="{Binding IsDrivers,   Converter={StaticResource BoolToVis}}"
+                                             MaxHeight="{Binding ViewportHeight, ElementName=ContentScroller}" VerticalAlignment="Top" />
                         <views:SchedulerView Visibility="{Binding IsScheduler, Converter={StaticResource BoolToVis}}" />
                         <views:SettingsView  Visibility="{Binding IsSettings,  Converter={StaticResource BoolToVis}}" />
                     </Grid>
