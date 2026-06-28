@@ -1,0 +1,148 @@
+<UserControl x:Class="SwiftClean.Views.CleaningView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SwiftClean.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+             d:DesignWidth="700" d:DesignHeight="520"
+             FontFamily="Segoe UI">
+    <Border Style="{StaticResource Panel}" MaxWidth="660" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <StackPanel>
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,0.5" Padding="14,12">
+                <Grid>
+                    <TextBlock Text="{Binding [clean.types], Source={StaticResource Loc}}" Style="{StaticResource PanelTitle}" />
+                    <TextBlock Text="{Binding SelectedText}" HorizontalAlignment="Right"
+                               FontSize="11" Foreground="{StaticResource TextFaintBrush}"
+                               Visibility="{Binding HasScanData, Converter={StaticResource BoolToVis}}" />
+                </Grid>
+            </Border>
+
+            <!-- Empty state -->
+            <StackPanel Margin="0,44" HorizontalAlignment="Center"
+                        Visibility="{Binding NoScanData, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="40"
+                           Foreground="{StaticResource BorderLightBrush}" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding [clean.empty1], Source={StaticResource Loc}}" FontSize="14" Foreground="{StaticResource StatLabelBrush}"
+                           HorizontalAlignment="Center" Margin="0,12,0,0" />
+                <TextBlock Text="{Binding [clean.empty2], Source={StaticResource Loc}}" FontSize="12" Foreground="{StaticResource SectionLabelBrush}"
+                           HorizontalAlignment="Center" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- List -->
+            <StackPanel Visibility="{Binding HasScanData, Converter={StaticResource BoolToVis}}">
+                <ItemsControl ItemsSource="{Binding CleanItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,0.5">
+                                <StackPanel>
+                                    <Grid Margin="14,13">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="30" Height="30" CornerRadius="7"
+                                                Background="{Binding IconBgHex, Converter={StaticResource StringToBrush}}"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                       Foreground="{Binding IconColorHex, Converter={StaticResource StringToBrush}}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding Desc}" FontSize="11" Foreground="{StaticResource StatLabelBrush}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding DisplaySize}" FontSize="13" FontWeight="Medium"
+                                                   Foreground="{Binding IconColorHex, Converter={StaticResource StringToBrush}}"
+                                                   VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <ToggleButton Grid.Column="3" Style="{StaticResource Chevron}" VerticalAlignment="Center" Margin="0,0,6,0"
+                                                      IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                      Visibility="{Binding HasDetails, Converter={StaticResource BoolToVis}}" />
+                                        <ToggleButton Grid.Column="4" Style="{StaticResource BoxCheck}"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    </Grid>
+                                    <Border Style="{StaticResource FilePreview}">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel>
+                                                <!-- Browsers (Browser Cache only) -->
+                                                <StackPanel Visibility="{Binding HasBrowsers, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{Binding [cookies.hint], Source={StaticResource Loc}}" FontSize="11" FontStyle="Italic"
+                                                               Foreground="{StaticResource SectionLabelBrush}" Padding="54,8,14,4" TextWrapping="Wrap" />
+                                                    <ItemsControl ItemsSource="{Binding Browsers}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border BorderBrush="{StaticResource RowHoverBrush}" BorderThickness="0,0,0,0.5" Padding="54,6,14,6">
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <ToggleButton Grid.Column="0" Style="{StaticResource BoxCheck}" VerticalAlignment="Center"
+                                                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                                                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                                                                        <TextBlock Grid.Column="2" Text="{Binding DisplaySize}" FontSize="11" Foreground="{StaticResource TextFaintBrush}"
+                                                                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                                <!-- Files (other categories) -->
+                                                <StackPanel Visibility="{Binding ShowFiles, Converter={StaticResource BoolToVis}}">
+                                                <ItemsControl ItemsSource="{Binding Files}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border BorderBrush="{StaticResource RowHoverBrush}" BorderThickness="0,0,0,0.5" Padding="54,5,14,5">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Grid.Column="0" Text="&#xE7C3;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                                               Foreground="{StaticResource SectionLabelBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <TextBlock Grid.Column="1" Text="{Binding Name}" ToolTip="{Binding FullPath}" FontSize="11"
+                                                                               Foreground="{StaticResource TextFaintBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                                    <TextBlock Grid.Column="2" Text="{Binding DisplaySize}" FontSize="11"
+                                                                               Foreground="{StaticResource SectionLabelBrush}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <TextBlock Text="{Binding MoreText}" FontSize="11" FontStyle="Italic" Foreground="{StaticResource StatLabelBrush}"
+                                                           Padding="54,5,14,6" Visibility="{Binding HasMore, Converter={StaticResource BoolToVis}}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid Margin="14">
+                    <Button Style="{StaticResource AccentButton}" Padding="10" Command="{Binding CleanAllCommand}"
+                            Content="{Binding CleanButtonText}"
+                            Visibility="{Binding NotCleanDone, Converter={StaticResource BoolToVis}}" />
+                    <Border CornerRadius="7" Padding="10" Background="{StaticResource SuccessSoftBrush}"
+                            BorderBrush="{StaticResource SuccessBorderBrush}" BorderThickness="0.5"
+                            Visibility="{Binding CleanDone, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource SuccessBrush}" />
+                            <TextBlock Text="{Binding CleanedText}" FontSize="13" FontWeight="Medium"
+                                       Foreground="{StaticResource SuccessBrush}" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

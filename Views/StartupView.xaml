@@ -1,0 +1,86 @@
+<UserControl x:Class="SwiftClean.Views.StartupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SwiftClean.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+             d:DesignWidth="760" d:DesignHeight="520"
+             FontFamily="Segoe UI">
+    <StackPanel MaxWidth="740" HorizontalAlignment="Left">
+        <!-- Summary cards -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Style="{StaticResource Panel}" Padding="14" Margin="0,0,5,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding [st.enabled], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                    <TextBlock Text="{Binding EnabledSummary}" FontSize="20" FontWeight="Medium"
+                               Foreground="{StaticResource TextBrightBrush}" Margin="0,5,0,0" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Style="{StaticResource Panel}" Padding="14" Margin="5,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding [st.delay], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                    <TextBlock Text="{Binding BootDelayText}" FontSize="20" FontWeight="Medium"
+                               Foreground="{StaticResource WarningBrush}" Margin="0,5,0,0" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Panel}" Padding="14" Margin="5,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding [st.high], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                    <TextBlock Text="{Binding HighImpactText}" FontSize="20" FontWeight="Medium"
+                               Foreground="{StaticResource ErrorBrush}" Margin="0,5,0,0" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Table -->
+        <Border Style="{StaticResource Panel}" Margin="0,12,0,0">
+            <StackPanel>
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,0.5" Padding="14,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="72" />
+                            <ColumnDefinition Width="52" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding [st.program], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                        <TextBlock Grid.Column="1" Text="{Binding [st.impact], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                        <TextBlock Grid.Column="2" Text="{Binding [st.ms], Source={StaticResource Loc}}" Style="{StaticResource ColLabel}" />
+                    </Grid>
+                </Border>
+                <ItemsControl ItemsSource="{Binding StartupItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,0.5" Padding="14,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="72" />
+                                        <ColumnDefinition Width="52" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                                        <TextBlock Text="{Binding Publisher}" FontSize="11" Foreground="{StaticResource SectionLabelBrush}" Margin="0,1,0,0" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Impact}" FontSize="12" VerticalAlignment="Center"
+                                               Foreground="{Binding ImpactColorHex, Converter={StaticResource StringToBrush}}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding StartupMs}" FontSize="12" Foreground="{StaticResource SectionLabelBrush}" VerticalAlignment="Center" />
+                                    <ToggleButton Grid.Column="3" Style="{StaticResource PillToggle}" HorizontalAlignment="Left"
+                                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

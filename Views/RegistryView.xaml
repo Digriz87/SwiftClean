@@ -1,0 +1,222 @@
+<UserControl x:Class="SwiftClean.Views.RegistryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SwiftClean.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+             d:DesignWidth="820" d:DesignHeight="480"
+             FontFamily="Segoe UI">
+    <UserControl.Resources>
+        <!-- Registry list row -->
+        <Style x:Key="RegRow" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Row" Background="Transparent"
+                                BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,0.5" Padding="14,10">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Key}" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,0,3" />
+                                <TextBlock Text="{Binding Path}" FontSize="10" Foreground="{StaticResource SectionLabelBrush}"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,0,5" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="Dot" Width="5" Height="5" CornerRadius="2.5"
+                                            Background="{StaticResource ErrorBrush}" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="Status" Text="{Binding StatusText}" FontSize="10"
+                                               Foreground="{StaticResource ErrorBrush}" Margin="5,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{StaticResource RowHoverBrush}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsFixed}" Value="True">
+                                <Setter TargetName="Dot" Property="Background" Value="{StaticResource SuccessBrush}" />
+                                <Setter TargetName="Status" Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource StatLabelBrush}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style x:Key="FieldBox" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0.5" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,8" />
+        </Style>
+        <Style x:Key="FieldText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="18" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="296" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Master list -->
+        <Border Grid.Column="0" Style="{StaticResource Panel}" Margin="0,0,12,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,0.5" Padding="14,12">
+                    <StackPanel>
+                        <TextBlock Text="{Binding [reg.problemKeys], Source={StaticResource Loc}}" Style="{StaticResource PanelTitle}" />
+                        <TextBlock Text="{Binding RegFoundText}" FontSize="11" Foreground="{StaticResource StatLabelBrush}" Margin="0,2,0,0"
+                                   Visibility="{Binding HasScanData, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding NoScanData, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="&#xEBD2;" FontFamily="Segoe MDL2 Assets" FontSize="32"
+                               Foreground="{StaticResource BorderLightBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding [reg.runScan], Source={StaticResource Loc}}" FontSize="12" Foreground="{StaticResource StatLabelBrush}"
+                               HorizontalAlignment="Center" Margin="0,10,0,0" />
+                </StackPanel>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HasScanData, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding RegItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource RegRow}"
+                                        Command="{Binding DataContext.SelectRegCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Detail -->
+        <Border Grid.Column="1" Style="{StaticResource Panel}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,0.5" Padding="14,12">
+                    <TextBlock Text="{Binding [reg.details], Source={StaticResource Loc}}" Style="{StaticResource PanelTitle}" />
+                </Border>
+
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding NoScanData, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="&#xEBD2;" FontFamily="Segoe MDL2 Assets" FontSize="40"
+                               Foreground="{StaticResource BorderLightBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding [reg.runScanAnalyze], Source={StaticResource Loc}}" FontSize="13"
+                               Foreground="{StaticResource StatLabelBrush}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+
+                <!-- No leftovers found -->
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding RegClean, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="40"
+                               Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding [reg.clean], Source={StaticResource Loc}}" FontSize="13"
+                               Foreground="{StaticResource StatLabelBrush}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+
+                <Grid Grid.Row="1" Margin="16" Visibility="{Binding HasRegIssues, Converter={StaticResource BoolToVis}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                        <TextBlock Text="{Binding [reg.path], Source={StaticResource Loc}}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBox}">
+                            <TextBlock Text="{Binding RegSelPath}" Style="{StaticResource FieldText}" />
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,14">
+                        <TextBlock Text="{Binding [reg.key], Source={StaticResource Loc}}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBox}">
+                            <TextBlock Text="{Binding RegSelKey}" Style="{StaticResource FieldText}" />
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Margin="0,0,0,14">
+                        <TextBlock Text="{Binding [reg.value], Source={StaticResource Loc}}" Style="{StaticResource FieldLabel}" />
+                        <Border Style="{StaticResource FieldBox}">
+                            <TextBlock Text="{Binding RegSelValue}" Style="{StaticResource FieldText}" Foreground="{StaticResource TextFaintBrush}" />
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3">
+                        <TextBlock Text="{Binding [reg.problem], Source={StaticResource Loc}}" Style="{StaticResource FieldLabel}" />
+                        <Border CornerRadius="6" Padding="10,8" BorderThickness="0.5">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource ErrorSoftBrush}" />
+                                    <Setter Property="BorderBrush" Value="{StaticResource ErrorBorderBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelFixed}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource SuccessSoftBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource SuccessBorderBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="{Binding RegSelStatus}" FontSize="12" TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelFixed}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="5" HorizontalAlignment="Left">
+                        <Button Style="{StaticResource AccentButton}" Padding="18,9" Command="{Binding FixSelectedCommand}"
+                                Visibility="{Binding NotSelFixed, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE90F;" FontFamily="Segoe MDL2 Assets" FontSize="14" />
+                                <TextBlock Text="{Binding [reg.deleteBtn], Source={StaticResource Loc}}" Margin="7,0,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Border CornerRadius="7" Padding="18,9" Background="{StaticResource SuccessSoftBrush}"
+                                BorderBrush="{StaticResource SuccessBorderBrush}" BorderThickness="0.5"
+                                Visibility="{Binding IsSelFixed, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource SuccessBrush}" />
+                                <TextBlock Text="{Binding [reg.deleted], Source={StaticResource Loc}}" FontSize="13" FontWeight="Medium" Foreground="{StaticResource SuccessBrush}" Margin="7,0,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

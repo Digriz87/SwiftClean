@@ -1,0 +1,84 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ==== Raw colors ==== -->
+    <Color x:Key="BackgroundColor">#0f0f11</Color>
+    <Color x:Key="SidebarColor">#0a0a0c</Color>
+    <Color x:Key="AccentColor">#5b4fff</Color>
+    <Color x:Key="ErrorColor">#e05c5c</Color>
+    <Color x:Key="SuccessColor">#4ab87d</Color>
+    <Color x:Key="WarningColor">#d4924a</Color>
+    <Color x:Key="BorderColor">#1e1e22</Color>
+    <Color x:Key="SupportColor">#1a1630</Color>
+
+    <!-- Text -->
+    <Color x:Key="TextPrimaryColor">#f2f2f5</Color>
+    <Color x:Key="TextSecondaryColor">#8a8a94</Color>
+
+    <!-- ==== Brushes (reference these from controls) ==== -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="SupportBrush" Color="{StaticResource SupportColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+
+    <!-- Subtle hover overlay used by chrome buttons -->
+    <SolidColorBrush x:Key="HoverBrush" Color="#16161a" />
+
+    <!-- ==== Sidebar navigation ==== -->
+    <SolidColorBrush x:Key="NavRowBrush" Color="#141418" />           <!-- active / hover row background -->
+    <SolidColorBrush x:Key="NavActiveTextBrush" Color="#c4b8ff" />    <!-- active item text -->
+    <SolidColorBrush x:Key="NavInactiveTextBrush" Color="#6b6b78" />  <!-- idle item text -->
+    <SolidColorBrush x:Key="NavHoverTextBrush" Color="#b8b8c8" />     <!-- hovered item text -->
+    <SolidColorBrush x:Key="SectionLabelBrush" Color="#38383f" />     <!-- MAIN / SYSTEM labels -->
+
+    <!-- ==== Cards / dashboard ==== -->
+    <SolidColorBrush x:Key="CardBrush" Color="#141418" />         <!-- card / panel background -->
+    <SolidColorBrush x:Key="StatLabelBrush" Color="#45454f" />    <!-- stat-card label -->
+    <SolidColorBrush x:Key="TrackBrush" Color="#1e1e28" />        <!-- progress-bar track -->
+
+    <!-- Scanning overlay scrim: rgba(10,10,12,0.9) -->
+    <SolidColorBrush x:Key="ScanOverlayBrush" Color="#E60A0A0C" />
+
+    <!-- Logo badge gradient -->
+    <LinearGradientBrush x:Key="LogoGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#5b4fff" Offset="0" />
+        <GradientStop Color="#8b6fff" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- ==== Imported design (SwiftClean.dc.html) ==== -->
+    <SolidColorBrush x:Key="TextBrightBrush" Color="#e8e8ec" />     <!-- primary text -->
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#b8b8c8" />      <!-- secondary text -->
+    <SolidColorBrush x:Key="TextFaintBrush" Color="#6b6b78" />      <!-- tertiary text -->
+    <SolidColorBrush x:Key="AccentLightBrush" Color="#8b6fff" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#4a40d8" />
+    <SolidColorBrush x:Key="BlueBrush" Color="#5b7fff" />
+
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#18181d" />       <!-- list-row hover -->
+    <SolidColorBrush x:Key="DividerBrush" Color="#1a1a1e" />        <!-- inner row divider -->
+    <SolidColorBrush x:Key="BorderLightBrush" Color="#2a2a35" />    <!-- lighter border -->
+    <SolidColorBrush x:Key="BadgeBgBrush" Color="#1e1a2e" />        <!-- nav badge background -->
+    <SolidColorBrush x:Key="SupportBorderBrush" Color="#2d2650" />
+
+    <SolidColorBrush x:Key="SuccessSoftBrush" Color="#0f1f17" />    <!-- success pill bg -->
+    <SolidColorBrush x:Key="SuccessBorderBrush" Color="#264f3a" />  <!-- ~rgba(74,184,125,0.3) -->
+    <SolidColorBrush x:Key="ErrorSoftBrush" Color="#1f1414" />      <!-- error pill / icon bg -->
+    <SolidColorBrush x:Key="ErrorBorderBrush" Color="#4f2a2a" />    <!-- ~rgba(224,92,92,0.3) -->
+    <SolidColorBrush x:Key="WarnSoftBrush" Color="#1f1a10" />       <!-- amber icon bg -->
+    <SolidColorBrush x:Key="BlueSoftBrush" Color="#101828" />       <!-- blue icon bg -->
+
+    <!-- Toggle track (off) -->
+    <SolidColorBrush x:Key="ToggleOffBrush" Color="#1e1e28" />
+
+    <!-- Scan progress fill gradient (horizontal) -->
+    <LinearGradientBrush x:Key="ScanFillBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#5b4fff" Offset="0" />
+        <GradientStop Color="#8b6fff" Offset="1" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>
